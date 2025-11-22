@@ -1,18 +1,22 @@
-use axum::{routing::get, Router};
-use std::net::SocketAddr;
-use tokio::net::TcpListener;
+use axum::Router;
+use tower_http::cors::CorsLayer;
+
+mod routes;
+mod services;
+mod utils;
 
 #[tokio::main]
 async fn main() {
     let app = Router::new()
-        .route("/", get(|| async { "Hello from Axum 0.7!" }));
+        .nest("/api", routes::routes())
+        .layer(CorsLayer::very_permissive());
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-    println!("Server berjalan di http://{}", addr);
+    println!("Server running at http://127.0.0.1:3000");
 
-    let listener = TcpListener::bind(addr).await.unwrap();
-
-    axum::serve(listener, app)
-        .await
-        .unwrap();
+    axum::serve(
+        tokio::net::TcpListener::bind("127.0.0.1:3000").await.unwrap(),
+        app
+    )
+    .await
+    .unwrap();
 }
